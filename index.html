@@ -8,6 +8,7 @@
 		:root{
 			--radius: 5px;
 			--blue: #193549;
+			--shadow: 0px 0px 2px 2px rgba( 50, 50, 255, 0.5);
 		}
 
 		html{
@@ -55,7 +56,7 @@
 			input[type="text"]:focus,
 			input[type="password"]:focus{
 				background-color: #FFFFFF;
-				box-shadow: 0px 0px 2px 2px rgba( 50, 50, 255, 0.5);
+				box-shadow: var(--shadow);
 			}
 
 		input[type="submit"]{
@@ -64,12 +65,13 @@
 			border: solid 1px var(--blue);
 			border-radius: 0px;
 			padding: 7px 25px;
+			cursor: pointer;
 		}
 			input[type="submit"]:hover,
-			input[type="submit"]:focus,
-			input[type="submit"]:click{
+			input[type="submit"]:focus{
 				color: var(--blue);
 				background-color: #FFFFFF;
+				box-shadow: var(--shadow);
 			}
 
 		.clear{ clear: both; }
