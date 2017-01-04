@@ -150,15 +150,15 @@
 	<div id="login">
 		<div class="modal">
 			<div id="form" class="login">
-				<form action="" method="" id="loginForm">
+				<form action="" method="post" enctype="multipart/form-data" id="loginForm">
 					<p class="title">Log In</p>
 					<p>
 						<label for="username">Username</label><br />
-						<input type="text" id="username" />
+						<input type="text" id="username" name="username" />
 					</p>
 					<p>
 						<label for="pass">Password</label><br />
-						<input type="password" id="pass">
+						<input type="password" id="pass" name="pass" />
 					</p>
 					<p>
 						<input type="submit" value="Log In" />
@@ -167,15 +167,15 @@
 						<button type="button" class="link" id="test1" onclick="changePlaces('register');">Create an Account?</button>
 					</p>
 				</form>
-				<form action="" method="" id="registerForm">
+				<form action="" method="post" enctype="multipart/form-data" id="registerForm">
 					<p class="title">Register</p>
 					<p>
 						<label for="regUser">Username</label><br />
-						<input type="text" id="regUser" />
+						<input type="text" id="regUser" name="regUser" />
 					</p>
 					<p>
 						<label for="regPass">Password</label><br />
-						<input type="text" id="regPass" />
+						<input type="text" id="regPass" name="regPass" />
 					</p>
 					<p>
 						<input type="submit" value="Create User" />
