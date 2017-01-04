@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/doughensel/fitness/issues"
   },
-  "homepage": "https://github.com/doughensel/fitness#readme"
+  "homepage": "https://github.com/doughensel/fitness#readme",
+  "dependencies": {
+    "formidable": "^1.0.17"
+  }
 }
