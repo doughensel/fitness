@@ -17,3 +17,6 @@ function displayForm( res ){
 
 server.listen(8080);
 console.log("Sever listening on 8080");
+
+// code created by following the instructions at:
+// https://www.sitepoint.com/creating-and-handling-forms-in-node-js/
