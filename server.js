@@ -16,7 +16,8 @@ const http       = require('http'),
 function displayLogin( res ){
 
 	if( !fs.existsSync('json/users.json') ){
-		var json = JSON.stringify({ users: [] });
+		let users = { user: [] };
+		var json = JSON.stringify(users);
 		fs.writeFile('json/users.json', json, 'utf8' );
 	}
 
@@ -28,35 +29,69 @@ function displayLogin( res ){
 		res.write(data);
 		res.end();
 	});
-	
+
 }
 
 function processForms( req, res){
-	let form = new formidable.IncomingForm(),
-		users;
-	fs.readFile('json/users.json', 'utf8', function( err, data ){
-		if( err ){
-			console.log( err );
-		}else{
-			users = JSON.parse(data);
-		}
+
+	let form  = new formidable.IncomingForm(),
+		users = [],
+		temp  = [];
+
+	form.on('field', function( field, value ){
+		temp[field] = value;
 	});
 
-	console.log( users );
+	form.on('end', retrieveUsers);
 
-	form.parse( req, function( err, fields, files ){
-		// Store the data from the fields in your data store.  The data could be a file
-		// or database or any other store based on the application.
-		res.writeHead(200, {
-			'Content-Type' : 'text/plain'
+	function retrieveUsers(){
+		fs.readFile('json/users.json', 'utf8', function( err, data ){
+			if( !err ){
+				users = JSON.parse(data);
+				checkUsers();
+			}
 		});
-		res.write('received the data: \n\n');
-		res.end(util.inspect({
-			fields: fields,
-			files : files
-		}));
+	}
 
-	});
+	function checkUsers(){
+		
+		if( temp['regUser'] ){
+
+			var msg = undefined;
+
+			users.user.forEach(function(u){
+				if( u.username === temp['regUser'] ){
+					msg = {err: 'Username already in use'};
+				}
+			});
+
+			if( !msg ){
+				users.user.push({ id: users.user.length, username: temp['regUser'], password: temp['regPass'] });
+				var json = JSON.stringify( users );
+				fs.writeFile('json/users.json', json, 'utf8', dataProcessed );		
+			}else{
+				dataProcessed(msg);
+			}
+			
+		}
+	}
+
+	function dataProcessed( msg ){
+		fs.readFile('index.html', function( err, data){
+	        res.writeHead(200, {
+	            'Content-Type'   : 'text/html',
+	            'Content-Length' : data.length
+	        });
+	        if( msg && msg.err ){
+	        	console.log( msg.err );
+	        }
+			res.write(data);
+			res.end();
+		});
+	}
+	
+
+	form.parse(req);
 
 }
 
