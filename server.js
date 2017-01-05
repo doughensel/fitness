@@ -57,23 +57,39 @@ function processForms( req, res){
 		
 		if( temp['regUser'] ){
 
-			var msg = undefined;
+			var nameIndex = findUser( temp['regUser'] );
 
-			users.user.forEach(function(u){
-				if( u.username === temp['regUser'] ){
-					msg = {err: 'Username already in use'};
-				}
-			});
-
-			if( !msg ){
+			if( nameIndex < 0 ){
 				users.user.push({ id: users.user.length, username: temp['regUser'], password: temp['regPass'] });
 				var json = JSON.stringify( users );
 				fs.writeFile('json/users.json', json, 'utf8', dataProcessed );		
 			}else{
-				dataProcessed(msg);
+				dataProcessed({ err : 'Username already exists' });
 			}
-			
+
 		}
+
+		if( temp['username'] ){
+			var nameIndex = findUser( temp['username'] );
+
+			if( nameIndex >= 0 ){
+				if( users.user[nameIndex].password === temp['password'] ){
+					dataProcessed({ err : 'SUCCESS!' });
+				}
+			}
+
+		}
+
+	}
+
+	function findUser( name ){
+		let nameIndex = -1;
+		users.user.forEach(function(u, index){
+			if( u.username === name ){
+				nameIndex = index;
+			}
+		});
+		return nameIndex;
 	}
 
 	function dataProcessed( msg ){
