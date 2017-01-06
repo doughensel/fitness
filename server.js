@@ -65,8 +65,6 @@ function processForms( req, res){
 				var json = JSON.stringify( users );
 				fs.writeFile('json/users.json', json, 'utf8', dataProcessed );	
 
-				console.log( json );
-
 			}else{
 				dataProcessed({ err : 'Username already exists' });
 			}
