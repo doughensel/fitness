@@ -57,12 +57,16 @@ function processForms( req, res){
 		
 		if( temp['regUser'] ){
 
-			var nameIndex = findUser( temp['regUser'] );
+			let userAccount = findUser( temp['regUser'] );
 
-			if( nameIndex < 0 ){
+			if( Object.keys(userAccount).length == 0 ){
+
 				users.user.push({ id: users.user.length, username: temp['regUser'], password: temp['regPass'] });
 				var json = JSON.stringify( users );
-				fs.writeFile('json/users.json', json, 'utf8', dataProcessed );		
+				fs.writeFile('json/users.json', json, 'utf8', dataProcessed );	
+
+				console.log( json );
+
 			}else{
 				dataProcessed({ err : 'Username already exists' });
 			}
@@ -70,12 +74,17 @@ function processForms( req, res){
 		}
 
 		if( temp['username'] ){
-			var nameIndex = findUser( temp['username'] );
 
-			if( nameIndex >= 0 ){
-				if( users.user[nameIndex].password === temp['password'] ){
-					dataProcessed({ err : 'SUCCESS!' });
+			let userAccount = findUser( temp['username'] );
+
+			if( Object.keys(userAccount).length > 0 ){
+				if( userAccount.password === temp['pass'] ){
+					dataProcessed({ success : 'SUCCESS!' });
+				}else{
+					dataProcessed({ err : 'Incorrect Password' });
 				}
+			}else{
+				dataProcessed({ err : 'No user with that name' });
 			}
 
 		}
@@ -83,13 +92,13 @@ function processForms( req, res){
 	}
 
 	function findUser( name ){
-		let nameIndex = -1;
+		let userAccount = {}
 		users.user.forEach(function(u, index){
 			if( u.username === name ){
-				nameIndex = index;
+				userAccount = u;
 			}
 		});
-		return nameIndex;
+		return userAccount;
 	}
 
 	function dataProcessed( msg ){
@@ -98,6 +107,9 @@ function processForms( req, res){
 	            'Content-Type'   : 'text/html',
 	            'Content-Length' : data.length
 	        });
+	        if( msg && msg.success ){
+	        	console.log( msg.success );
+	        }
 	        if( msg && msg.err ){
 	        	console.log( msg.err );
 	        }
