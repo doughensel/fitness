@@ -17,7 +17,7 @@ function displayLogin( res ){
 
 	// check is users.json exists -- if not, create it
 	if( !fs.existsSync('json/users.json') ){
-		let users = { user: [] };
+		let users = { count: 0, user: [] };
 		var json = JSON.stringify(users);
 		fs.writeFile('json/users.json', json, 'utf8' );
 	}
@@ -71,10 +71,11 @@ function processForms( req, res ){
 			/// if the name does not exist, process and add...
 			if( Object.keys(userAccount).length == 0 ){
 
-				// TODO: create a counter in user.json for the ID
 				// create the data, add it to our temp users object, stringify it, and write the file
-				users.user.push({ id: users.user.length, username: temp['regUser'], password: temp['regPass'] });
+				users.count++;
+				users.user.push({ id: users.count, username: temp['regUser'], password: temp['regPass'] });
 				var json = JSON.stringify( users );
+				console.log( `User Created: ${users.count} | ${temp['regUser']}` );
 				fs.writeFile('json/users.json', json, 'utf8', dataProcessed );	
 
 			}else{
