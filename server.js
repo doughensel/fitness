@@ -27,7 +27,8 @@ function displayLogin( res ){
             'Content-Type'   : 'text/html',
             'Content-Length' : data.length
         });
-		res.write(data);
+        var html = data.toString().replace('${{USER}}', 'Doug');
+		res.write(html);
 		res.end();
 	});
 
