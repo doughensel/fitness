@@ -8,6 +8,7 @@
 		:root{
 			--radius: 5px;
 			--blue: #193549;
+			--red: #773333;
 			--shadow: 0px 0px 2px 2px rgba( 50, 50, 255, 0.5);
 		}
 
@@ -43,6 +44,9 @@
 			font-size: 2.4rem;
 			text-align: center;
 			font-weight: bold;
+		}
+		p.error{
+			color: var(--red);
 		}
 
 		input[type="text"],
@@ -102,18 +106,6 @@
 			border-radius: var(--radius);
 			padding: 10px 20px;
 		}
-		#form.register #loginForm{
-			display: none;
-		}
-		#form.register #registerForm{
-			display: block;
-		}
-		#form.login #registerForm{
-			display: none;
-		}
-		#form.login #loginForm{
-			display: block;
-		}
 	</style>
 
 </head>
@@ -154,8 +146,9 @@
 			<div id="form" class="login">
 				<form action="" method="post" enctype="multipart/form-data" id="loginForm" name="loginForm">
 					<p class="title">Log In</p>
+					<p class="error">${ERROR}</p>
 					<p>
-						<label for="username">Username ${{USER}}</label><br />
+						<label for="username">Username</label><br />
 						<input type="text" id="username" name="username" />
 					</p>
 					<p>
@@ -166,36 +159,13 @@
 						<input type="submit" value="Log In" />
 					</p>
 					<p>
-						<button type="button" class="link" id="test1" onclick="changePlaces('register');">Create an Account?</button>
-					</p>
-				</form>
-				<form action="" method="post" enctype="multipart/form-data" id="registerForm" name="registerForm">
-					<p class="title">Register</p>
-					<p>
-						<label for="regUser">Username</label><br />
-						<input type="text" id="regUser" name="regUser" />
-					</p>
-					<p>
-						<label for="regPass">Password</label><br />
-						<input type="text" id="regPass" name="regPass" />
-					</p>
-					<p>
-						<input type="submit" value="Create User" />
-					</p>
-					<p>
-						<button type="button" class="link" id="test2" onclick="changePlaces('login');">Return to Log In</button>
+						<a href="/register.html">Create an Account?</a>
 					</p>
 				</form>
 				<div class="clear"></div>
 			</div>
 		</div>
 	</div>
-
-<script type="text/javascript">
-function changePlaces( target ){
-	document.getElementById('form').className = target;
-}
-</script>
 
 </body>
 </html>

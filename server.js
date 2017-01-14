@@ -5,37 +5,47 @@ const http       = require('http'),
 	  util       = require('util'),
 	  server     = http.createServer(function( req, res ){
 
-	  		if( req.method.toLowerCase() == 'get' ){
-	  			displayLogin(res);
-	  		}else if( req.method.toLowerCase() == 'post' ){
-	  			processForms(req, res);
-	  		}
+	  	// check is users.json exists -- if not, create it
+		if( !fs.existsSync('json/users.json') ){
+			let users = { count: 0, user: [] },
+				json  = JSON.stringify(users);
+			fs.writeFile('json/users.json', json, 'utf8' );
+		}
 
-	  });
+  		if( req.method.toLowerCase() == 'get' ){
+  			switch( req.url.toLowerCase() ){
+  				case '/register.html':
+  					displayPage( res, 'register.html' );
+  					break;
+  				default: 
+  					displayPage( res, 'index.html' );
+  			}
+  		}else if( req.method.toLowerCase() == 'post' ){
+  			switch( req.url.toLowerCase() ){
+  				case '/register.html':
+  					processForms( req, res, 'register.html' );
+  					break;
+  				default: 
+  					processForms( req, res, 'index.html' );
+  			}
+  		}
 
-function displayLogin( res ){
+	  });// END server
 
-	// check is users.json exists -- if not, create it
-	if( !fs.existsSync('json/users.json') ){
-		let users = { count: 0, user: [] };
-		var json = JSON.stringify(users);
-		fs.writeFile('json/users.json', json, 'utf8' );
-	}
-	// load the login page & display it
-	fs.readFile('index.html', function( err, data){
-        res.writeHead(200, {
-            'Content-Type'   : 'text/html',
-            'Content-Length' : data.length
-        });
-        var html = data.toString().replace('${{USER}}', 'Doug');
-		res.write(html);
+function displayPage( res, page, msg = { 'err' : '', 'success' : '' } ){
+	fs.readFile( page, function( err, data ){
+		res.writeHead( 200, {
+			'Content-Type'   : 'text/html',
+			'Content-Length' : data.length
+		});
+		let html = data.toString().replace( '${ERROR}', msg.err ).replace( '${SUCCESS}', msg.success );
+		res.write( html );
 		res.end();
 	});
+}// END displayPage()
 
-} // END function displayLogin( res )
 
-
-function processForms( req, res ){
+function processForms( req, res, page ){
 
 	let form  = new formidable.IncomingForm(),
 		users = [],
@@ -64,7 +74,7 @@ function processForms( req, res ){
 		
 		// checking for registration...
 		// the field name 'regUser' will be passed in the registration
-		if( temp['regUser'] ){
+		if( page === 'register.html' ){
 
 			// see if the username already exists in our users.json
 			let userAccount = findUser( temp['regUser'] );
@@ -77,18 +87,18 @@ function processForms( req, res ){
 				users.user.push({ id: users.count, username: temp['regUser'], password: temp['regPass'] });
 				var json = JSON.stringify( users );
 				console.log( `User Created: ${users.count} | ${temp['regUser']}` );
-				fs.writeFile('json/users.json', json, 'utf8', dataProcessed );	
+				fs.writeFile('json/users.json', json, 'utf8', dataProcessed() );	
 
 			}else{
 				// the username already exists. handle error(s) here
-				dataProcessed({ err : 'Username already exists' });
+				dataProcessed({ 'err' : 'Username already exists', 'success' : '' });
 			}
 
 		}// END if( temp['regUser'] )
 
 		// checking for login ...
 		// the field name 'username' will be passed during the log in
-		if( temp['username'] ){
+		if( page === 'index.html' ){
 
 			// see if the username exists
 			let userAccount = findUser( temp['username'] );
@@ -97,14 +107,14 @@ function processForms( req, res ){
 			if( Object.keys(userAccount).length > 0 ){
 				// check is the passwords match
 				if( userAccount.password === temp['pass'] ){
-					dataProcessed({ success : 'SUCCESS!' });
+					dataProcessed({ 'err' : '', 'success' : 'SUCCESS!' });
 				}else{
 					// bad password error(s) handled here
-					dataProcessed({ err : 'Incorrect Password' });
+					dataProcessed({ 'err' : 'Incorrect Password', 'success' : '' });
 				}
 			}else{
 				// incorrect username error(rs) handled here
-				dataProcessed({ err : 'No user with that name' });
+				dataProcessed({ 'err' : 'No user with that name', 'success' : '' });
 			}
 
 		}// END if( temp['username'] )
@@ -122,26 +132,11 @@ function processForms( req, res ){
 		});
 		return userAccount;
 	}// END function findUser( name )
-
-	// End function, after everything is processed...
-	// TODO: A lot ;)
-	function dataProcessed( msg ){
-		fs.readFile('index.html', function( err, data){
-	        res.writeHead(200, {
-	            'Content-Type'   : 'text/html',
-	            'Content-Length' : data.length
-	        });
-	        if( msg && msg.success ){
-	        	console.log( msg.success );
-	        }
-	        if( msg && msg.err ){
-	        	console.log( msg.err );
-	        }
-			res.write(data);
-			res.end();
-		});
-	} // END function dataProcessed( msg )
 	
+
+	function dataProcessed( msg = { 'err' : '', 'success' : '' } ){
+		displayPage( res, page, msg );
+	}
 
 	form.parse(req);
 
