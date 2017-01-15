@@ -25,6 +25,10 @@ const http       = require('http'),
   				case '/register.html':
   					processForms( req, res, 'register.html' );
   					break;
+  				case '/users.html':
+  				case '/user.json':
+  					processForms( req, res, 'user.json' );
+  					break;
   				default: 
   					processForms( req, res, 'index.html' );
   			}
@@ -71,6 +75,11 @@ function processForms( req, res, page ){
 
 	// check if the user exists for registration or login
 	function checkUsers(){
+
+		if( page === 'user.json' ){
+			res.writeHead(200, { 'Content-Type': 'application/json' }); 
+	        res.end( ' test test test ' );
+		}
 		
 		// checking for registration...
 		// the field name 'regUser' will be passed in the registration
@@ -84,14 +93,15 @@ function processForms( req, res, page ){
 
 				// create the data, add it to our temp users object, stringify it, and write the file
 				users.count++;
-				users.user.push({ id: users.count, username: temp['regUser'], password: temp['regPass'] });
-				var json = JSON.stringify( users );
+				let result = { id: users.count, username: temp['regUser'], password: temp['regPass'] };
+				users.user.push( result );
+				let json = JSON.stringify( users );
 				console.log( `User Created: ${users.count} | ${temp['regUser']}` );
-				fs.writeFile('json/users.json', json, 'utf8', dataProcessed() );	
+				fs.writeFile('json/users.json', json, 'utf8', dataProcessed( 'user.html', { 'err' : '', 'success' : result.id }) );	
 
 			}else{
 				// the username already exists. handle error(s) here
-				dataProcessed({ 'err' : 'Username already exists', 'success' : '' });
+				dataProcessed( page, { 'err' : 'Username already exists', 'success' : '' });
 			}
 
 		}// END if( temp['regUser'] )
@@ -107,14 +117,14 @@ function processForms( req, res, page ){
 			if( Object.keys(userAccount).length > 0 ){
 				// check is the passwords match
 				if( userAccount.password === temp['pass'] ){
-					dataProcessed({ 'err' : '', 'success' : 'SUCCESS!' });
+					dataProcessed( 'user.html', { 'err' : '', 'success' : userAccount.id });
 				}else{
 					// bad password error(s) handled here
-					dataProcessed({ 'err' : 'Incorrect Password', 'success' : '' });
+					dataProcessed( page, { 'err' : 'Incorrect Password', 'success' : '' });
 				}
 			}else{
 				// incorrect username error(rs) handled here
-				dataProcessed({ 'err' : 'No user with that name', 'success' : '' });
+				dataProcessed( page, { 'err' : 'No user with that name', 'success' : '' });
 			}
 
 		}// END if( temp['username'] )
@@ -123,10 +133,10 @@ function processForms( req, res, page ){
 
 	// Helper function that runs through the temp users object to find a match
 	// and return the record (if a match is found)
-	function findUser( name ){
+	function findUser( id ){
 		let userAccount = {}
 		users.user.forEach(function(u, index){
-			if( u.username === name ){
+			if( u.username === id || u.id === id ){
 				userAccount = u;
 			}
 		});
@@ -134,7 +144,7 @@ function processForms( req, res, page ){
 	}// END function findUser( name )
 	
 
-	function dataProcessed( msg = { 'err' : '', 'success' : '' } ){
+	function dataProcessed( page, msg = { 'err' : '', 'success' : '' } ){
 		displayPage( res, page, msg );
 	}
 
