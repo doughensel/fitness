@@ -5,6 +5,8 @@ const http       = require('http'),
 	  util       = require('util'),
 	  server     = http.createServer(function( req, res ){
 
+	  	console.log( req );
+
 	  	// check is users.json exists -- if not, create it
 		if( !fs.existsSync('json/users.json') ){
 			let users = { count: 0, user: [] },
