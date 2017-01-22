@@ -88,24 +88,12 @@
 			left: 10px;
 		}
 
-		#login{
-			height: 100%;
-			width: 100%;
-			position: fixed;
-			display: table;
+		#body{
+			width: 75%;
+			margin: 20px auto;
 		}
-		#login .modal{
-			display: table-cell;
-			vertical-align: middle;
-		}
-		#login .modal #form{
-			width: 300px;
-			margin: auto;
-			background-color: #FFFFFF;
-			width: 300px;
-			border-radius: var(--radius);
-			padding: 10px 20px;
-		}
+
+		h1{ text-align: center; }
 	</style>
 
 </head>
@@ -142,10 +130,39 @@
 	</div>
 
 
+	<div id="body">
+		<h1>Hello ${USERNAME}</h1>
+		<div id="message">&nbsp;</div>
+		<div class="half">
+			<p id="weights">
+				Weight:<br />
+				<div id="dynamicWeights">
+					<label for="week0">Week #<span id="week0"></span>:</label>
+					<input type="number" id="week0" />
+				</div>
+			</p>
+			<p id="height">
+				Height:<br />
+				<input type="number" id="feet" />
+				<label for="feet">feet &amp;</label>
+				<input type="number" id="inches" />
+				<label for="inches">inches</label>
+			</p>
+		</div>
+		<div class="half" id="results"></div>
+	</div>
+
 
 </body>
 
 <script type="text/javascript">
-	var id = ${SUCCESS};
+	var id = '${USERNAME}';
+	var output = {
+		msg : document.getElementById('message'),
+		weights : document.getElementById('dynamicWeights')
+	};
+	(function(){
+		alert('test');
+	})();
 </script>
 </html>

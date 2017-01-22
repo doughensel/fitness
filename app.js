@@ -3,9 +3,7 @@ const http       = require('http'),
 	  formidable = require('formidable'),
 	  users      = {
 	  	count  : 0,
-	  	user   : {
-	  		// id | username | password
-	  	},
+	  	user   : [ /* id, username, password */ ],
 	  	add    : function( username, password ){
 	  		this.count++;
 	  		let userAccount = {
@@ -14,7 +12,7 @@ const http       = require('http'),
 	  			password : password
 	  		};
 	  		this.user.push( userAccount );
-	  		console.log( `User Added: ${this.count} | ${password}` );
+	  		console.log( `User Added: ${this.count} | ${username}` );
 	  		this.save();
 	  	},
 	  	remove : function(){},
@@ -35,22 +33,25 @@ const http       = require('http'),
 					that.user  = json.user;
 					that.count = json.count;
 				}
-				callback();
+				if( typeof callback === 'function' ){
+					callback();
+				}
 			});
 	  	},
 	  	save   : function( callback ){
 	  		let json = JSON.stringify( { count : this.count, user : this.user } );
 			fs.writeFile('json/users.json', json, 'utf8', callback );	
 	  	}
-	  },
+	  }, // END users object
 	  server     = http.createServer(function( req, res ){
 	  	// check is users.json exists -- if not, create it
 		if( !fs.existsSync('json/users.json') ){
 			let json    = JSON.stringify(users);
 			fs.writeFile('json/users.json', json, 'utf8' );
-		}else{
+		}/*else{
 			users.read( () => { console.log( users ); } );
-		}
+		}*/
+		users.read();
 		if( req.method.toLowerCase() == 'get' ){
   			switch( req.url.toLowerCase() ){
   				case '/register.html':
@@ -72,19 +73,76 @@ const http       = require('http'),
   			}
   		}
 	  	
-	  });
+	  }); // END server
 
 function displayPage( req, res, page, msg = { 'err' : '', 'success' : '' } ){
+	if( !msg.err ){
+		msg.err = '';
+	}
+	if( !msg.success ){
+		msg.success = '';
+	}
 	fs.readFile( page, function( err, data ){
+		let html = data;
+		updatePage( html );
+	});
+	function updatePage( html ){
+		html = html.toString();
+		for( let key in msg ){
+			let target = new RegExp( '\\${' + key.toUpperCase() + '}', 'g');
+			html = html.replace( target, msg[key] );
+		}
+		writePage( html );
+	}
+	function writePage( html ){
 		res.writeHead( 200, {
 			'Content-Type'   : 'text/html',
-			'Content-Length' : data.length
+			'Content-Length' : html.length
 		});
-		let html = data.toString().replace( '${ERROR}', msg.err ).replace( '${SUCCESS}', msg.success );
-		res.write( data );
+		res.write( html );
 		res.end();
-	});
+	}
 }// END displayPage()
+
+function processForms( req, res, page ){
+	let form  = new formidable.IncomingForm(),
+		temp  = [];
+		// get the submitted form data and save them to a temporary array
+	form.on('field', function( field, value ){
+		temp[field] = value;
+	});
+	form.on('end', evaluateFormData);
+	form.parse(req);
+
+	function evaluateFormData(){
+		let userAccount = {};
+		switch( page ){
+			case 'index.html':
+				userAccount = users.find( temp['username'] );
+				if( Object.keys(userAccount).length > 0 ){
+					if( userAccount.password === temp['password'] ){
+						displayPage( req, res, 'user.html', {'err': '', 'success': 'Login Succesful', 'username' : temp['username'] })
+					}else{
+						displayPage( req, res, page, {'err': 'Incorrect password', 'success': ''})
+					}
+				}else{
+					displayPage( req, res, page, {'err' : 'No user with that name', 'success' : ''});
+				}
+				break;
+			case 'register.html':
+				userAccount = users.find( temp['regUser'] );
+				if( Object.keys(userAccount).length == 0 ){
+					users.add( temp['regUser'], temp['regPass'] );
+					displayPage( req, res, 'user.html', {'err': '', 'success': 'User account created!', 'username': temp['regUser'] });
+				}else{
+					displayPage( req, res, page, {'err': 'Username already exists', 'success' : ''});
+				}
+				break;
+			default:
+				displayPage( req, res, page, {'err': '404: Page not found', 'success' : ''});
+		}
+	}// END function evaluateFormData()
+}// END processForms()
 
 server.listen(8080);
 console.log('Sever listening on 8080');
