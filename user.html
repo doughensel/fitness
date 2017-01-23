@@ -134,12 +134,10 @@
 		<h1>Hello ${USERNAME}</h1>
 		<div id="message">&nbsp;</div>
 		<div class="half">
+			<p id="save"></p>
 			<p id="weights">
 				Weight:<br />
-				<div id="dynamicWeights">
-					<label for="week0">Week #<span id="week0"></span>:</label>
-					<input type="number" id="week0" />
-				</div>
+				<div id="dynamicWeights"></div>
 			</p>
 			<p id="height">
 				Height:<br />
@@ -159,10 +157,50 @@
 	var id = '${USERNAME}';
 	var output = {
 		msg : document.getElementById('message'),
-		weights : document.getElementById('dynamicWeights')
+		weights : document.getElementById('dynamicWeights'),
+		count : 1,
+		createWeight : function( count, value ){
+			value = value || 0;
+			count = count || this.count;
+			var label = document.createElement('label');
+				label.setAttribute('for', 'week'+count );
+				label.appendChild( document.createTextNode('Week #'+count));
+			var num   = document.createElement('input');
+				num.setAttribute('type', 'number');
+				num.id = 'week'+count;
+				num.value = value;
+			var week = document.createElement('div');
+				week.appendChild( label );
+				week.appendChild( num );
+			this.weights.appendChild( week );
+		}
 	};
+	var info = {};
+	function ajax( id, action, callback ){
+		var target = (action === 'save')? '/save' : '/user.json';
+		var data   = (action === 'save')? info    : {id : id};
+		var xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function() {
+			if (this.readyState == 4){
+				if(this.status == 200) {
+					callback( JSON.parse(this.responseText) );
+				}else{
+					output.msg.innerHTML = "An Error has occured.";
+					callback();
+				}
+			}
+		};
+		xhttp.open("POST", target);
+		xhttp.setRequestHeader("Content-Type", "application/json");
+		xhttp.send(JSON.stringify(data));
+	}
+	function loaded( data ){
+		info = data;
+		output.msg.innerHTML  = '';
+	}
 	(function(){
-		alert('test');
-	})();
+		output.msg.innerHTML = 'Loading...';
+		ajax( id, 'load', loaded );
+	}(id));
 </script>
 </html>

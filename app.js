@@ -44,14 +44,7 @@ const http       = require('http'),
 	  	}
 	  }, // END users object
 	  server     = http.createServer(function( req, res ){
-	  	// check is users.json exists -- if not, create it
-		if( !fs.existsSync('json/users.json') ){
-			let json    = JSON.stringify(users);
-			fs.writeFile('json/users.json', json, 'utf8' );
-		}/*else{
-			users.read( () => { console.log( users ); } );
-		}*/
-		users.read();
+		checkJSON( 'json/users.json', {count: users.count, user: users.user}, () => { users.read(); });
 		if( req.method.toLowerCase() == 'get' ){
   			switch( req.url.toLowerCase() ){
   				case '/register.html':
@@ -68,12 +61,26 @@ const http       = require('http'),
   				case '/user.json':
   					processForms( req, res, 'user.json' );
   					break;
+  				case '/save':
+  					processForms( req, res, 'save' );
+  					break;
   				default: 
   					processForms( req, res, 'index.html' );
   			}
   		}
 	  	
 	  }); // END server
+
+function checkJSON( filename, obj, callback ){
+	// check is users.json exists -- if not, create it
+	if( !fs.existsSync(filename) ){
+		let json    = JSON.stringify(obj);
+		fs.writeFile(filename, json, 'utf8' );
+	}/*else{
+		users.read( () => { console.log( users ); } );
+	}*/
+	callback();
+}
 
 function displayPage( req, res, page, msg = { 'err' : '', 'success' : '' } ){
 	if( !msg.err ){
@@ -136,6 +143,30 @@ function processForms( req, res, page ){
 					displayPage( req, res, 'user.html', {'err': '', 'success': 'User account created!', 'username': temp['regUser'] });
 				}else{
 					displayPage( req, res, page, {'err': 'Username already exists', 'success' : ''});
+				}
+				break;
+			case 'user.json':
+				userAccount = users.find( temp['id'] );
+				checkJSON( `json/user${userAccount.id}.json`, { weight: '', weights: {}, entries: {} }, jsonRead );
+				function jsonRead(){
+			  		fs.readFile(`json/user${userAccount.id}.json`, 'utf8', function( err, data ){
+						if( !err ){
+							userRespond( data );
+						}else{
+							console.log( err );
+						}
+					});
+				}
+				function userRespond( data = {} ){
+					res.writeHead(200, { 'Content-Type': 'application/json' }); 
+					res.end( JSON.stringify(data) );
+				}
+				break;
+			case 'save':
+
+				function saveRespond( data = {} ){
+					res.writeHead(200, { 'Content-Type': 'application/json' }); 
+					res.end( JSON.stringify({complete: true}) );
 				}
 				break;
 			default:
