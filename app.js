@@ -119,6 +119,9 @@ function processForms( req, res, page ){
 		temp[field] = value;
 	});
 	form.on('end', evaluateFormData);
+	form.on('error',( error )=>{
+		console.log( `FORM ERROR: ${error}` );
+	});
 	form.parse(req);
 
 	function evaluateFormData(){
@@ -128,32 +131,32 @@ function processForms( req, res, page ){
 				userAccount = users.find( temp['username'] );
 				if( Object.keys(userAccount).length > 0 ){
 					if( userAccount.password === temp['password'] ){
-						displayPage( req, res, 'user.html', {'err': '', 'success': 'Login Succesful', 'username' : temp['username'] })
+						displayPage( req, res, 'user.html', {'success': 'Login Succesful', 'username' : temp['username'] })
 					}else{
-						displayPage( req, res, page, {'err': 'Incorrect password', 'success': ''})
+						displayPage( req, res, page, {'err': 'Incorrect password'});
 					}
 				}else{
-					displayPage( req, res, page, {'err' : 'No user with that name', 'success' : ''});
+					displayPage( req, res, page, {'err' : 'No user with that name'});
 				}
 				break;
 			case 'register.html':
 				userAccount = users.find( temp['regUser'] );
 				if( Object.keys(userAccount).length == 0 ){
 					users.add( temp['regUser'], temp['regPass'] );
-					displayPage( req, res, 'user.html', {'err': '', 'success': 'User account created!', 'username': temp['regUser'] });
+					displayPage( req, res, 'user.html', {'success': 'User account created!', 'username': temp['regUser'] });
 				}else{
-					displayPage( req, res, page, {'err': 'Username already exists', 'success' : ''});
+					displayPage( req, res, page, {'err': 'Username already exists'});
 				}
 				break;
 			case 'user.json':
 				userAccount = users.find( temp['id'] );
-				checkJSON( `json/user${userAccount.id}.json`, { weight: '', weights: {}, entries: {} }, jsonRead );
+				checkJSON( `json/user${userAccount.id}.json`, { height: '', weights: {}, entries: {} }, jsonRead );
 				function jsonRead(){
 			  		fs.readFile(`json/user${userAccount.id}.json`, 'utf8', function( err, data ){
 						if( !err ){
 							userRespond( data );
 						}else{
-							console.log( err );
+							userRespond( '{}' );
 						}
 					});
 				}
@@ -170,7 +173,7 @@ function processForms( req, res, page ){
 				}
 				break;
 			default:
-				displayPage( req, res, page, {'err': '404: Page not found', 'success' : ''});
+				displayPage( req, res, page, {'err': '404: Page not found'});
 		}
 	}// END function evaluateFormData()
 }// END processForms()
