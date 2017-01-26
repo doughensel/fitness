@@ -150,30 +150,32 @@ function processForms( req, res, page ){
 				break;
 			case 'user.json':
 				userAccount = users.find( temp['id'] );
-				checkJSON( `json/user${userAccount.id}.json`, { height: '', weights: {}, entries: {} }, jsonRead );
-				function jsonRead(){
-			  		fs.readFile(`json/user${userAccount.id}.json`, 'utf8', function( err, data ){
-						if( !err ){
-							userRespond( data );
-						}else{
-							userRespond( '{}' );
-						}
-					});
-				}
-				function userRespond( data = {} ){
-					res.writeHead(200, { 'Content-Type': 'application/json' }); 
-					res.end( JSON.stringify(data) );
-				}
+				checkJSON( `json/user${userAccount.id}.json`, { height: '', weights: {}, entries: {} }, () => {
+					jsonRead( userAcccount.id );
+				});
 				break;
 			case 'save':
-				
-				function saveRespond( data = {} ){
-					res.writeHead(200, { 'Content-Type': 'application/json' }); 
-					res.end( JSON.stringify({complete: true}) );
-				}
+				userAccount = users.find( temp['id'] );
+
 				break;
 			default:
 				displayPage( req, res, page, {'err': '404: Page not found'});
+		}
+		function jsonRead(accountid){
+	  		fs.readFile(`json/user${accountid}.json`, 'utf8', function( err, data ){
+				if( !err ){
+					userRespond( data );
+				}else{
+					userRespond( '{}' );
+				}
+			});
+		}
+		function jsonWrite(){
+			userRespond( {complete:true} );
+		}
+		function userRespond( data = {} ){
+			res.writeHead(200, { 'Content-Type': 'application/json' }); 
+			res.end( JSON.stringify(data) );
 		}
 	}// END function evaluateFormData()
 }// END processForms()
