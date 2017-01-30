@@ -158,6 +158,8 @@
 			<p id="step2">
 				Weight for Week #<span id="weekNum">0</span>:<br />
 				<input type="number" id="weight" /><label for="weight">lbs.</label>
+				<br /><br />
+				<a href="javascript:save('weight');" class="submit">Save</a>
 			</p>
 		</div>
 		<div class="half" id="results"></div>
@@ -207,6 +209,9 @@
 		output.week.innerHTML = data.week || 0;
 
 		if( data.height && data.height > 0 ){
+			output.step1.className = '';
+			output.step2.className = 'show';
+
 			var feet = Math.floor( data.height / 12 );
 			var inches = Math.floor( data.height % 12 );
 
@@ -214,20 +219,29 @@
 			var hText  = document.createTextNode( 'height: ' + feet + '\' ' + inches + '"' );
 			height.appendChild( hText );
 
+			output.results.innerHTML = '';
 			output.results.appendChild( height );
 
 		}else{
 			output.step1.className = 'show';
+			output.step2.className = '';
 		}
 	}
 	function save( mode ){
 		output.msg.innerHTML = 'Saving...';
 		if( mode === 'height' ){
 			var height = Math.floor( parseInt( input.height.feet.value ) * 12 + parseInt( input.height.inches.value ) );
-			console.log( height );
 			var data = {
 				id : id,
 				height : height
+			};
+			ajax( data, 'save', loaded );
+		}
+		if( mode === 'weight' ){
+			var weight = parseFloat( input.weight.value );
+			var data = {
+				id : id,
+				weight : weight
 			};
 			ajax( data, 'save', loaded );
 		}

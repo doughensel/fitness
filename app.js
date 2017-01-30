@@ -178,7 +178,67 @@ function processForms( req, res, page ){
 				}
 			}
 			if( temp['weight'] ){
-
+				var currWeek = parseInt( getWeekNum() );
+				// assign original weight if not present
+				if( !data.original || typeof data.original != 'object' ){
+					data.original = {};
+				}
+				if( !data.original.weight ){
+					data.original = {};
+					data.original.weight = temp['weight'];
+				}
+				if( !data.weights || typeof data.weights != 'object' ){
+					data.weights = [];
+				}
+				if( !data.weights[currWeek] || typeof data.weights[currWeek] != 'object' ){
+					data.weights[currWeek] = {};
+				}
+				// assign value for current week's weight
+				data.weights[currWeek].weight = temp['weight'];
+				// reward an entry record
+				data.weights[currWeek].entry  = 1;
+				// go through previous weights to fill out data where it may be undefined
+				for( var x = currWeek; x >= 0; x-- ){
+					if( !data.weights[x] || typeof data.weights[x] != 'object' ){
+						data.weights[x] = {};
+					}
+					if( !data.weights[x].weight || data.weights[x].weight === 0 ){
+						data.weights[x].weight = data.weights[x + 1].weight;
+					}
+				}
+				// if lost 1.5 or more since last weight, reward a point
+				if( data.weights[currWeek - 1 ] ){
+					if( data.weights[currWeek] - data.weights[currWeek - 1] >= 1.5 ){
+						data.weights[currWeek].loss = 1;
+					}
+				}
+				// BMI
+				if( !data.original.bmi ){
+					// Your BMI is equal to your weight in pounds, times 704.7, divided by the square of your height in inches.
+					data.original.bmi = (data.original.weight * 704.7) / (data.height * data.height);
+					data.original.modBMI = data.original.bmi;
+				}
+				var currBMI = (data.weights[currWeek].weight * 704.7) / (data.height * data.height);
+				if( data.original.modBMI - currBMI >= 1 ){
+					data.weights[currWeek].bmi = 1;
+					data.original.modBMI = data.original.modBMI - 1;
+				}
+				// add up entries
+				var totalEntries = 0;
+				var dwx = undefined;
+				for( var x = currWeek; x >= 0; x-- ){
+					dwx = data.weights[x];
+					if( dwx.entry ){
+						totalEntries++;
+					}
+					if( dwx.loss ){
+						totalEntries++;
+					}
+					if( dwx.bmi ){
+						totalEntries++;
+					}
+				}
+				data.totalEntries = totalEntries;
 			}
 			let json = JSON.stringify( data );
 			fs.writeFile(`json/user${accountid}.json`, json, 'utf8', () => {
