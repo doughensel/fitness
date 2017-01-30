@@ -82,11 +82,15 @@ function checkJSON( filename, obj, callback ){
 	// check is users.json exists -- if not, create it
 	if( !fs.existsSync(filename) ){
 		let json    = JSON.stringify(obj);
-		fs.writeFile(filename, json, 'utf8' );
-	}/*else{
-		users.read( () => { console.log( users ); } );
-	}*/
-	callback();
+		fs.writeFile(filename, json, 'utf8', makeCallback );
+	}else{
+		makeCallback();
+	}
+	function makeCallback(){
+		if( typeof callback === 'function' ){
+			callback();
+		}
+	}
 }
 
 function displayPage( req, res, page, msg = { 'err' : '', 'success' : '' } ){
