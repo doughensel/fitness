@@ -70,6 +70,7 @@
 			display: block;
 			float: right;
 			text-decoration: none;
+			margin-right: 75px;
 		}
 			.submit:hover,
 			.submit:focus{
@@ -105,6 +106,16 @@
 		}
 		#steps p.show{
 			display: block;
+		}
+
+		td{
+			padding: 3px;
+		}
+		td:nth-child(2){
+			color: #333399;
+		}
+		td:nth-child(3){
+			color: #339933;
 		}
 	</style>
 
@@ -216,7 +227,7 @@
 			var inches = Math.floor( data.height % 12 );
 
 			var height = document.createElement('p');
-			var hText  = document.createTextNode( 'height: ' + feet + '\' ' + inches + '"' );
+			var hText  = document.createTextNode( 'Height: ' + feet + '\' ' + inches + '"' );
 			height.appendChild( hText );
 
 			output.results.innerHTML = '';
@@ -225,6 +236,46 @@
 		}else{
 			output.step1.className = 'show';
 			output.step2.className = '';
+		}
+		if( data.weights && data.weights.length > 0 ){
+			var table = document.createElement('table');
+			var tr    = document.createElement('tr');
+			var td    = document.createElement('td');
+			var node  = document.createTextNode('');
+			var msg   = '';
+			for( var x = 0, i = data.weights.length; x < i; x++ ){
+				tr    = document.createElement('tr');
+				td    = document.createElement('td');
+				node  = document.createTextNode('Week ' + x );
+				td.appendChild( node );
+				tr.appendChild( td );
+				td    = document.createElement('td');
+				node  = document.createTextNode( data.weights[x].weight );
+				td.appendChild( node );
+				tr.appendChild( td );
+				msg = '';
+				if( data.weights[x].entry ){
+					msg += '+1 submitted weight<br />';
+				}
+				if( data.weights[x].loss ){
+					msg += '+1 lost 1.5 (or more) lbs.<br />';
+				}
+				if( data.weights[x].bmi ){
+					msg += '+1 lost 1 bmi point<br />';
+				}
+				td    = document.createElement('td');
+				td.innerHTML = msg;
+				tr.appendChild( td );
+
+				table.appendChild(tr);
+			}
+			output.results.appendChild( table );
+
+			var p = document.createElement('p');
+			var node = document.createTextNode( 'TOTAL ENTRIES: ' + data.totalEntries );
+			p.appendChild( node );
+
+			output.results.appendChild(p);
 		}
 	}
 	function save( mode ){

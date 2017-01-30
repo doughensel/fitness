@@ -190,9 +190,10 @@ function processForms( req, res, page ){
 				if( !data.weights || typeof data.weights != 'object' ){
 					data.weights = [];
 				}
-				if( !data.weights[currWeek] || typeof data.weights[currWeek] != 'object' ){
-					data.weights[currWeek] = {};
-				}
+				
+				// create or reset the week's results to reflect the weight submitted
+				data.weights[currWeek] = {};
+				
 				// assign value for current week's weight
 				data.weights[currWeek].weight = temp['weight'];
 				// reward an entry record
@@ -208,7 +209,7 @@ function processForms( req, res, page ){
 				}
 				// if lost 1.5 or more since last weight, reward a point
 				if( data.weights[currWeek - 1 ] ){
-					if( data.weights[currWeek] - data.weights[currWeek - 1] >= 1.5 ){
+					if( data.weights[currWeek - 1].weight - data.weights[currWeek].weight >= 1.5 ){
 						data.weights[currWeek].loss = 1;
 					}
 				}
