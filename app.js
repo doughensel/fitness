@@ -61,15 +61,22 @@ const http       = require('http'),
   				case '/user.json':
   					processForms( req, res, 'user.json' );
   					break;
-  				case '/save':
-  					processForms( req, res, 'save' );
+  				case '/save.json':
+  					processForms( req, res, 'save.json' );
   					break;
   				default: 
   					processForms( req, res, 'index.html' );
   			}
   		}
 	  	
-	  }); // END server
+	  }),
+	  startWeek = new Date( 2017, 0, 15 ); 
+
+function getWeekNum(){
+	let currWeek = new Date();
+	let weekNum  = (currWeek - startWeek) / 1000 / 60 / 60 / 24 / 7;
+	return Math.floor( weekNum );	
+}
 
 function checkJSON( filename, obj, callback ){
 	// check is users.json exists -- if not, create it
@@ -150,30 +157,49 @@ function processForms( req, res, page ){
 				break;
 			case 'user.json':
 				userAccount = users.find( temp['id'] );
-				checkJSON( `json/user${userAccount.id}.json`, { height: '', weights: {}, entries: {} }, () => {
-					jsonRead( userAcccount.id );
+				checkJSON( `json/user${userAccount.id}.json`, {'week' : 0, 'height' : 0}, () => {
+					jsonRead( userAccount.id, userRespond );
 				});
 				break;
-			case 'save':
+			case 'save.json':
 				userAccount = users.find( temp['id'] );
-
+				checkJSON( `json/user${userAccount.id}.json`, {'week' : 0, 'height' : 0}, () => {
+					jsonRead( userAccount.id, jsonUpdate );
+				});
 				break;
 			default:
 				displayPage( req, res, page, {'err': '404: Page not found'});
 		}
-		function jsonRead(accountid){
+		function jsonUpdate( accountid, data ){
+			if( temp['height'] ){
+				if( data.height === 0 ){
+					// try to prevent user gaming of the system, they can only set height once
+					data.height = temp['height'];
+				}
+			}
+			if( temp['weight'] ){
+
+			}
+			let json = JSON.stringify( data );
+			fs.writeFile(`json/user${accountid}.json`, json, 'utf8', () => {
+				userRespond( accountid, data );
+			});
+		}
+		function jsonRead(accountid, callback){
 	  		fs.readFile(`json/user${accountid}.json`, 'utf8', function( err, data ){
+	  			data = JSON.parse( data );
 				if( !err ){
-					userRespond( data );
+					data.week = getWeekNum();
+					callback( accountid, data );
 				}else{
-					userRespond( '{}' );
+					callback( accountid, '{}' );
 				}
 			});
 		}
 		function jsonWrite(){
 			userRespond( {complete:true} );
 		}
-		function userRespond( data = {} ){
+		function userRespond( accountid, data = {} ){
 			res.writeHead(200, { 'Content-Type': 'application/json' }); 
 			res.end( JSON.stringify(data) );
 		}

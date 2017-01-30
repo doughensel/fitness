@@ -18,7 +18,7 @@
 			font-size: 10px;
 		}
 		body{
-			font-size: 1.6rem;
+			font-size: 2rem;
 			margin: 0;
 			padding: 0;
 		}
@@ -49,30 +49,30 @@
 			color: var(--red);
 		}
 
-		input[type="text"],
-		input[type="password"]{
-			background-color: #EEEEEE;
+		input[type="number"]{
 			border: solid 1px #999999;
 			padding: 3px;
-			width: 80%;
-			font-size: 1.8rem;
+			width: 75px;
+			font-size: 2.4rem;
+			text-align: center;
 		}
-			input[type="text"]:focus,
-			input[type="password"]:focus{
-				background-color: #FFFFFF;
+			input[type="number"]:focus{
 				box-shadow: var(--shadow);
 			}
 
-		input[type="submit"]{
+		.submit{
 			color: #FFFFFF;
 			background-color: var(--blue);
 			border: solid 1px var(--blue);
 			border-radius: 0px;
 			padding: 7px 25px;
 			cursor: pointer;
+			display: block;
+			float: right;
+			text-decoration: none;
 		}
-			input[type="submit"]:hover,
-			input[type="submit"]:focus{
+			.submit:hover,
+			.submit:focus{
 				color: var(--blue);
 				background-color: #FFFFFF;
 				box-shadow: var(--shadow);
@@ -94,6 +94,18 @@
 		}
 
 		h1{ text-align: center; }
+
+		.half{ 
+			width: 49%;
+			float: left; 
+		}
+
+		#steps p{
+			display: none;
+		}
+		#steps p.show{
+			display: block;
+		}
 	</style>
 
 </head>
@@ -133,18 +145,19 @@
 	<div id="body">
 		<h1>Hello ${USERNAME}</h1>
 		<div id="message">&nbsp;</div>
-		<div class="half">
-			<p id="save"></p>
-			<p id="weights">
-				Weight:<br />
-				<div id="dynamicWeights"></div>
-			</p>
-			<p id="height">
+		<div id="steps" class="half">
+			<p id="step1">
 				Height:<br />
 				<input type="number" id="feet" />
 				<label for="feet">feet &amp;</label>
 				<input type="number" id="inches" />
 				<label for="inches">inches</label>
+				<br /><br />
+				<a href="javascript:save('height');" class="submit">Save</a>
+			</p>
+			<p id="step2">
+				Weight for Week #<span id="weekNum">0</span>:<br />
+				<input type="number" id="weight" /><label for="weight">lbs.</label>
 			</p>
 		</div>
 		<div class="half" id="results"></div>
@@ -157,28 +170,21 @@
 	var id = '${USERNAME}';
 	var output = {
 		msg : document.getElementById('message'),
-		weights : document.getElementById('dynamicWeights'),
-		count : 1,
-		createWeight : function( count, value ){
-			value = value || 0;
-			count = count || this.count;
-			var label = document.createElement('label');
-				label.setAttribute('for', 'week'+count );
-				label.appendChild( document.createTextNode('Week #'+count));
-			var num   = document.createElement('input');
-				num.setAttribute('type', 'number');
-				num.id = 'week'+count;
-				num.value = value;
-			var week = document.createElement('div');
-				week.appendChild( label );
-				week.appendChild( num );
-			this.weights.appendChild( week );
-		}
+		step1 : document.getElementById('step1'),
+		step2 : document.getElementById('step2'),
+		week  : document.getElementById('weekNum'),
+		results : document.getElementById('results')
 	};
+	var input = {
+		height : {
+			feet   : document.getElementById('feet'),
+			inches : document.getElementById('inches')
+		},
+		weight : document.getElementById('weight')
+	};	
 	var info = {};
-	function ajax( id, action, callback ){
-		var target = (action === 'save')? '/save' : '/user.json';
-		var data   = (action === 'save')? info    : {id : id};
+	function ajax( data, action, callback ){
+		var target = (action === 'save')? '/save.json' : '/user.json';
 		var xhttp = new XMLHttpRequest();
 		xhttp.onreadystatechange = function() {
 			if (this.readyState == 4){
@@ -197,10 +203,39 @@
 	function loaded( data ){
 		info = data;
 		output.msg.innerHTML  = '';
+		
+		output.week.innerHTML = data.week || 0;
+
+		if( data.height && data.height > 0 ){
+			var feet = Math.floor( data.height / 12 );
+			var inches = Math.floor( data.height % 12 );
+
+			var height = document.createElement('p');
+			var hText  = document.createTextNode( 'height: ' + feet + '\' ' + inches + '"' );
+			height.appendChild( hText );
+
+			output.results.appendChild( height );
+
+		}else{
+			output.step1.className = 'show';
+		}
 	}
+	function save( mode ){
+		output.msg.innerHTML = 'Saving...';
+		if( mode === 'height' ){
+			var height = Math.floor( parseInt( input.height.feet.value ) * 12 + parseInt( input.height.inches.value ) );
+			console.log( height );
+			var data = {
+				id : id,
+				height : height
+			};
+			ajax( data, 'save', loaded );
+		}
+	}
+
 	(function(){
 		output.msg.innerHTML = 'Loading...';
-		ajax( id, 'load', loaded );
+		ajax( {id : id}, 'load', loaded );
 	}(id));
 </script>
 </html>
