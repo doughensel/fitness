@@ -70,11 +70,14 @@ const http       = require('http'),
   		}
 	  	
 	  }),
-	  startWeek = new Date( 2017, 0, 15 ); 
+	  startWeek = new Date( 2017, 1, 5 ); 
 
 function getWeekNum(){
 	let currWeek = new Date();
 	let weekNum  = (currWeek - startWeek) / 1000 / 60 / 60 / 24 / 7;
+	if( weekNum < 0 ){
+		weekNum = 0;
+	}
 	return Math.floor( weekNum );	
 }
 
@@ -271,5 +274,5 @@ function processForms( req, res, page ){
 	}// END function evaluateFormData()
 }// END processForms()
 
-server.listen(8080);
-console.log('Sever listening on 8080');
+server.listen(3000);
+console.log('Sever listening on 3000');
